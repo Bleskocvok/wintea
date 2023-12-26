@@ -14,12 +14,56 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
                   int nCmdShow);
 
+#define CAJIK_ICON 1337
+
+struct rgb_t { int r, g, b; };
+
+struct style_t
+{
+    rgb_t fg, bg;
+    std::string font;
+};
+
+struct layout_t
+{
+    int width, height;
+    int dx, dy;
+    int icon_size;
+
+    style_t wait_style;
+    style_t ready_style;
+};
+
+layout_t LAYOUT =
+{
+    .width = 300,
+    .height = 100,
+    .dx = -10,
+    .dy = -30,
+    .icon_size = 64,
+    .wait_style =
+    {
+        .fg = rgb_t{ 255, 255, 255 },
+        .bg = rgb_t{ 64, 64, 64 },
+        .font = "Arial",
+    },
+    .ready_style =
+    {
+        .fg = rgb_t{ 255, 255, 255 },
+        .bg = rgb_t{ 64, 164, 64 },
+        .font = "Comic Sans MS",
+    },
+};
+
 struct data_t
 {
-    HFONT     hFont     = nullptr;
-    HICON     icon      = nullptr;
-    UINT_PTR  timer     = 10;
-    HINSTANCE hInstance = nullptr;
+    HFONT     fontTitleA = nullptr;
+    HFONT     fontTitleB = nullptr;
+    HFONT     fontDescA  = nullptr;
+    HFONT     fontDescB  = nullptr;
+    HICON     icon       = nullptr;
+    UINT_PTR  timer      = 10;
+    HINSTANCE hInstance  = nullptr;
 
     std::chrono::steady_clock::time_point start = {};
 
@@ -33,6 +77,10 @@ std::vector<std::wstring> arguments;
 void cleanup(HWND hwnd, data_t& d)
 {
     KillTimer(hwnd, d.timer);
+    DeleteObject(d.fontTitleA);
+    DeleteObject(d.fontDescA);
+    DeleteObject(d.fontTitleB);
+    DeleteObject(d.fontDescB);
 }
 
 void sys_err(const std::string& desc)
@@ -78,6 +126,24 @@ HICON get_icon(data_t& d, int i)
     return icon;
 }
 
+HFONT load_font(int height, const std::string& name, bool bold = false)
+{
+    return CreateFont(height,
+                      0,                           // <-- width
+                      0,
+                      0,                           // <-- angle
+                      bold ? FW_BOLD : FW_NORMAL,  // <-- weight
+                      false,                       // <-- italic
+                      false,                       // <-- underline
+                      false,                       // <-- strikeout
+                      DEFAULT_CHARSET,             // <-- charset
+                      OUT_OUTLINE_PRECIS,          // <-- precision
+                      CLIP_DEFAULT_PRECIS,         // <-- clip precision
+                      CLEARTYPE_QUALITY,           // <-- quality
+                      DEFAULT_PITCH | FF_DONTCARE, // <-- pitch, family
+                      name.c_str());
+}
+
 auto get_arguments()
 {
     auto result = std::vector<std::wstring>{};
@@ -111,40 +177,31 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     wc.hInstance     = hInstance;
     wc.lpszClassName = app_class;
     wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-    wc.hIcon         = get_icon(data, 1337);
+    wc.hIcon         = get_icon(data, CAJIK_ICON);
 
     RegisterClass(&wc);
 
-    int win_width = 300;
-    int win_height = 100;
-
     int sys_w = GetSystemMetrics(SM_CXSCREEN);
     int sys_h = GetSystemMetrics(SM_CYSCREEN);
+
+    int x = LAYOUT.dx >= 0 ? LAYOUT.dx : sys_w - LAYOUT.width  + LAYOUT.dx;
+    int y = LAYOUT.dy >= 0 ? LAYOUT.dy : sys_h - LAYOUT.height + LAYOUT.dy;
 
     HWND hwnd = CreateWindowEx(0, // <-- ext style
                               app_class, "Tea Notification",
                               WS_OVERLAPPEDWINDOW, // <-- style
                               0, 0,
-                              win_width, win_height,
+                              LAYOUT.width, LAYOUT.height,
                               nullptr, nullptr, hInstance, nullptr);
 
     if (hwnd == nullptr)
         return sys_err("CreateWindow"), 1;
 
-    data.hFont = CreateFont(25,                          // <-- height
-                            0,                           // <-- width
-                            0,
-                            0,                           // <-- angle
-                            FW_NORMAL,                   // <-- weight
-                            false,                       // <-- italic
-                            false,                       // <-- underline
-                            false,                       // <-- strikeout
-                            DEFAULT_CHARSET,             // <-- charset
-                            OUT_OUTLINE_PRECIS,          // <-- precision
-                            CLIP_DEFAULT_PRECIS,         // <-- clip precision
-                            CLEARTYPE_QUALITY,           // <-- quality
-                            DEFAULT_PITCH | FF_DONTCARE, // <-- pitch, family
-                            "Arial");
+    data.fontTitleA = load_font(22, LAYOUT.wait_style.font, true);
+    data.fontDescA  = load_font(15, LAYOUT.wait_style.font);
+
+    data.fontTitleB = load_font(22, LAYOUT.ready_style.font, true);
+    data.fontDescB  = load_font(15, LAYOUT.ready_style.font);
 
     data.icon = get_icon(data, 10001);
 
@@ -157,8 +214,8 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     SetWindowLong(hwnd, GWL_EXSTYLE, 0);
     SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-    SetWindowPos(hwnd, HWND_TOPMOST, sys_w - win_width, sys_h - win_height,
-                 win_width, win_height, SWP_SHOWWINDOW);
+    SetWindowPos(hwnd, HWND_TOPMOST, x, y, LAYOUT.width, LAYOUT.height,
+                 SWP_SHOWWINDOW);
 
     // Since the above call steals focus, let's restore it back to
     // the rightful holder. This results in one small flicker of the
@@ -199,28 +256,58 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             auto end = ch::steady_clock::now();
             auto elapsed = ch::duration_cast<ch::milliseconds>(end - data.start).count();
 
-            int angle = elapsed * 360 / data.tea_time_ms;
+            int angle = std::clamp<long long>(elapsed * 360 / data.tea_time_ms, 1, 360);
 
             if (angle >= 360)
-                data.icon = get_icon(data, 1337);
+                data.icon = get_icon(data, CAJIK_ICON);
             else
-                data.icon = get_icon(data, 10000 + std::clamp(angle, 1, 360));
+                data.icon = get_icon(data, 10000 + angle);
+
+            bool done = angle >= 360;
+            auto& fontTitle = done ? data.fontTitleB : data.fontTitleA;
+            auto& fontDesc  = done ? data.fontDescB : data.fontDescA;
+            auto& bg = done ? LAYOUT.ready_style.bg
+                            : LAYOUT.wait_style.bg;
+            auto& fg = done ? LAYOUT.ready_style.fg
+                            : LAYOUT.wait_style.fg;
+
+            std::string title;
+            std::string desc;
+            if (done)
+            {
+                title = "Tea ready";
+                desc = "Enjoy.";
+            }
+            else
+            {
+                int remains = data.tea_time_ms / 1000 - elapsed / 1000;
+                title = "Tea brewing";
+                desc = "Wait " + std::to_string(remains) + " s.";
+            }
+
 
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
-            SetBkColor(hdc, RGB(123, 0, 123));
+            SetBkColor(hdc, RGB(bg.r, bg.g, bg.b));
 
-            HBRUSH brush = CreateSolidBrush(RGB(123, 0, 123));
+            HBRUSH brush = CreateSolidBrush(RGB(bg.r, bg.g, bg.b));
             FillRect(hdc, &ps.rcPaint, brush);
 
-            SelectObject(hdc, data.hFont);
+            SelectObject(hdc, fontTitle);
+            SetTextColor(hdc, RGB(fg.r, fg.g, fg.b));
+            RECT rect_title;
+            SetRect(&rect_title, 70, 5, 295, 30);
+            DrawText(hdc, title.c_str(), -1, &rect_title, DT_LEFT | DT_WORD_ELLIPSIS);
 
-            std::string text = "Hello, Window! Bla bla bla bla these nuts being dragged across your face.";
-            SetTextColor(hdc, RGB(255, 255, 255));
-            TextOutA(hdc, 100, 10, text.c_str(), text.length());
+            SelectObject(hdc, fontDesc);
+            SetTextColor(hdc, RGB(fg.r, fg.g, fg.b));
+            RECT rect_desc;
+            SetRect(&rect_desc, 70, 35, 295, 95);
+            DrawText(hdc, desc.c_str(), -1, &rect_desc, DT_LEFT | DT_WORDBREAK);
 
-            DrawIconEx(hdc, 0, 0, data.icon, 64, 64, 0, nullptr, DI_NORMAL);
+            DrawIconEx(hdc, 0, 0, data.icon, LAYOUT.icon_size, LAYOUT.icon_size,
+                       0, nullptr, DI_NORMAL);
 
             EndPaint(hwnd, &ps);
         }
