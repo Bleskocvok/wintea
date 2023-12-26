@@ -1,0 +1,15 @@
+#!/bin/bash
+
+mkdir -p icons
+
+1>&2 echo
+
+for i in $(seq -w 360); do
+    1>&2 echo -e "\033[A$i / 360"
+    python3 gen_loading.py icons/loading_$i.svg 256 100 $i
+    convert -background none icons/loading_$i.svg icons/loading_$i.ico
+done
+
+for i in $(seq 360); do
+    printf '%d ICON "icons/loading_%03d.ico"\n' $(( 10000 + i )) $i
+done
