@@ -38,20 +38,21 @@ layout_t LAYOUT =
 {
     .width = 300,
     .height = 100,
-    .dx = -10,
-    .dy = -30,
+    .dx = -30,
+    .dy = -50,
     .icon_size = 64,
     .wait_style =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 64, 64 },
-        .font = "Arial",
+        .font = "Iosevka Curly Slab Extralight",
     },
     .ready_style =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 164, 64 },
-        .font = "Comic Sans MS",
+        // .font = "Comic Sans MS",
+        .font = "Iosevka Curly Slab Extralight",
     },
 };
 
@@ -128,7 +129,7 @@ HICON get_icon(data_t& d, int i)
 
 HFONT load_font(int height, const std::string& name, bool bold = false)
 {
-    return CreateFont(height,
+    auto res = CreateFont(height,
                       0,                           // <-- width
                       0,
                       0,                           // <-- angle
@@ -142,6 +143,8 @@ HFONT load_font(int height, const std::string& name, bool bold = false)
                       CLEARTYPE_QUALITY,           // <-- quality
                       DEFAULT_PITCH | FF_DONTCARE, // <-- pitch, family
                       name.c_str());
+    if (!res) std::cerr << "Font '" << name << "' not found\n";
+    return res;
 }
 
 auto get_arguments()
