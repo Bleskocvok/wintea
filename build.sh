@@ -1,5 +1,7 @@
 #!/bin/sh
 
+[ -z "$DEST" ] && { 1>&2 echo "Environment variable DEST must be set."; exit 1; }
+
 if [ "$USE_MINGW" = 1 ]; then
     cmake.exe -G "Unix Makefiles" -S . -B build || exit 1
 else
@@ -10,8 +12,7 @@ cmake.exe --build build || exit 1
 
 tgt()
 {
-    dest="/mnt/c/Users/Frantisek/Desktop"
-    rm -f $dest/$1.exe
+    rm -f $DEST/$1.exe
 
     if [ "$USE_MINGW" = 1 ]; then
         built="./build/$1.exe"
@@ -19,8 +20,8 @@ tgt()
         built="./build/Debug/$1.exe"
     fi
 
-    chmod +x $built && cp $built $dest/
+    chmod +x $built && cp $built $DEST/
 }
 
-tgt topwin
-tgt chat
+tgt tea
+# tgt chat

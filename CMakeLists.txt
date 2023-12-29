@@ -33,13 +33,13 @@ add_custom_command(OUTPUT resources.o
         "${CMAKE_SOURCE_DIR}/cajik.ico"
 )
 
-add_executable(chat chat.cpp resources.o)
+# add_executable(chat chat.cpp resources.o)
 
 if(MSVC)
-    add_executable(topwin WIN32 topwin.cpp resources.o)
+    add_executable(tea WIN32 tea.cpp resources.o)
 else()
-    add_executable(topwin topwin.cpp resources.o)
+    add_executable(tea tea.cpp resources.o)
 endif()
 
-target_link_libraries(chat PRIVATE user32)
-target_link_libraries(topwin PRIVATE user32)
+# target_link_libraries(chat PRIVATE user32)
+target_link_libraries(tea PRIVATE user32)
