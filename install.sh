@@ -4,6 +4,8 @@ export DEST="/mnt/c/Tea/"
 
 mkdir -p "$DEST"
 
+./make_icons || exit 1
+
 ./build.sh || exit $?
 
 mkdir -p "$HOME/bin"
