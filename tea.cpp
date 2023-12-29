@@ -6,6 +6,8 @@
 #include <sstream>
 #include <chrono>
 #include <algorithm>        // clamp
+#include <string_view>      // wstring_view
+#include <map>
 
 namespace ch = std::chrono;
 
@@ -165,12 +167,72 @@ auto get_arguments()
     return result;
 }
 
+auto parse_time(const std::wstring& str)
+{
+    std::wstring_view view = str;
+
+    auto invalid = []()
+    {
+        return std::runtime_error("invalid time format, must be hh:mm:ss, "
+                                  "e.g. 01:03:12 (one hour, three minutes, "
+                                  "twelve seconds), or 5:00 (five minutes)");
+    };
+
+    auto eat = [&]()
+    {
+        if (view.empty()) throw invalid();
+        auto c = view.front();
+        view.remove_prefix(1);
+        return c;
+    };
+
+    auto digit = [&](wchar_t c)
+    {
+        static auto digit_map = std::map<wchar_t, int>
+        {
+            {L'0', 0}, {L'1', 1}, {L'2', 2}, {L'3', 3}, {L'4', 4},
+            {L'5', 5}, {L'6', 6}, {L'7', 7}, {L'8', 8}, {L'9', 9},
+        };
+        if (auto found = digit_map.find(c); found != digit_map.end())
+            return found->second;
+        throw invalid();
+    };
+
+    int result = 0;
+    bool is_fst = true;
+
+    while (!view.empty())
+    {
+        auto c = eat();
+
+        if (c == L':')
+        {
+            if (is_fst) throw invalid();
+            result *= 60;
+            auto a = digit(eat());
+            auto n = 10 * a + digit(eat());
+            if (n >= 60) throw invalid();
+            result += n;
+        }
+        else
+        {
+            is_fst = false;
+            if (!view.empty() && view.front() != L':')
+                result += 10 * digit(c) + digit(eat());
+            else
+                result += digit(c);
+        }
+    }
+
+    return result;
+}
+
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     arguments = get_arguments();
 
     data.hInstance = hInstance;
-    data.tea_time_ms = 1000 * std::stoi(arguments.at(1));
+    data.tea_time_ms = 1000 * parse_time(arguments.at(1));
     data.start = std::chrono::steady_clock::now();
 
     const char app_class[] = "Tea Notification Class";
@@ -220,11 +282,11 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     SetWindowPos(hwnd, HWND_TOPMOST, x, y, LAYOUT.width, LAYOUT.height,
                  SWP_SHOWWINDOW);
 
-    // Since the above call steals focus, let's restore it back to
-    // the rightful holder. This results in one small flicker of the
-    // previous window's border. It would be preferable if it were
-    // possible not to steal focus with the above call, but sadly
-    // this is the best I could achieve.
+    // Since the above “show window” call steals focus, let's restore
+    // it back its the rightful holder. This results in one small
+    // flicker of the previous window's border. It would be preferable
+    // if it were possible not to steal focus with the above call, but
+    // sadly this is the best solution I was able to find.
     SetForegroundWindow(prev);
 
     MSG msg = {};
@@ -260,13 +322,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             auto elapsed = ch::duration_cast<ch::milliseconds>(end - data.start).count();
 
             int angle = std::clamp<long long>(elapsed * 360 / data.tea_time_ms, 1, 360);
-
-            if (angle >= 360)
-                data.icon = get_icon(data, CAJIK_ICON);
-            else
-                data.icon = get_icon(data, 10000 + angle);
-
             bool done = angle >= 360;
+
+            // No need to free the previous, since it's loaded as „shared“.
+            data.icon = get_icon(data, done ? CAJIK_ICON : 10000 + angle);
+
             auto& fontTitle = done ? data.fontTitleB : data.fontTitleA;
             auto& fontDesc  = done ? data.fontDescB : data.fontDescA;
             auto& bg = done ? LAYOUT.ready_style.bg
