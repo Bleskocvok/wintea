@@ -30,6 +30,7 @@ add_custom_command(OUTPUT resources.o
         windres -i "${CMAKE_SOURCE_DIR}/resources.rc" -o resources.o
     DEPENDS
         "${CMAKE_SOURCE_DIR}/resources.rc"
+        "${CMAKE_SOURCE_DIR}/cajik.ico"
 )
 
 add_executable(chat chat.cpp resources.o)
