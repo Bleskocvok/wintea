@@ -7,10 +7,10 @@ mkdir -p icons
 for i in $(seq -w 360); do
     1>&2 echo -e "\033[A$i / 360"
     if [ ! -f icons/loading_$i.svg ]; then
-        python3 gen_loading.py icons/loading_$i.svg 256 100 $i
+        python3 gen_loading.py icons/loading_$i.svg 256 100 $i || exit 1
     fi
     if [ ! -f icons/loading_$i.ico ]; then
-        convert -background none icons/loading_$i.svg icons/loading_$i.ico
+        convert -background none icons/loading_$i.svg icons/loading_$i.ico || exit 1
     fi
 done
 
