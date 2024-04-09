@@ -7,6 +7,7 @@
 #include <chrono>
 #include <algorithm>        // clamp
 #include <string_view>      // wstring_view
+#include <sstream>          // stringstream
 #include <map>
 
 namespace ch = std::chrono;
@@ -227,6 +228,19 @@ auto parse_time(const std::wstring& str)
     return result;
 }
 
+std::string remaining_message(int secs)
+{
+    auto out = std::stringstream{};
+    auto mins = (secs / 60) % 60;
+    auto hours = secs / 3600;
+    secs %= 60;
+    out << "Wait";
+    if (hours > 0) out << " " << hours << " h";
+    if (mins > 0)  out << " " << mins  << " m";
+    out << " " << secs << " s.";
+    return out.str();
+}
+
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     arguments = get_arguments();
@@ -345,7 +359,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             {
                 int remains = data.tea_time_ms / 1000 - elapsed / 1000;
                 title = "Tea brewing";
-                desc = "Wait " + std::to_string(remains) + " s.";
+                desc = remaining_message(remains);
             }
 
 
