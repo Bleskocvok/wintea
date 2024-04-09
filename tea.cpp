@@ -48,14 +48,13 @@ layout_t LAYOUT =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 64, 64 },
-        .font = "Iosevka Curly Slab Extralight",
+        .font = "Iosevka Term",
     },
     .ready_style =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 164, 64 },
-        // .font = "Comic Sans MS",
-        .font = "Iosevka Curly Slab Extralight",
+        .font = "Iosevka Term Bold",
     },
 };
 
@@ -191,8 +190,8 @@ auto parse_time(const std::wstring& str)
     {
         static auto digit_map = std::map<wchar_t, int>
         {
-            {L'0', 0}, {L'1', 1}, {L'2', 2}, {L'3', 3}, {L'4', 4},
-            {L'5', 5}, {L'6', 6}, {L'7', 7}, {L'8', 8}, {L'9', 9},
+            { L'0', 0 }, {  L'1', 1 }, { L'2', 2 }, { L'3', 3 }, { L'4', 4 },
+            { L'5', 5 }, {  L'6', 6 }, { L'7', 7 }, { L'8', 8 }, { L'9', 9 },
         };
         if (auto found = digit_map.find(c); found != digit_map.end())
             return found->second;
@@ -338,7 +337,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             int angle = std::clamp<long long>(elapsed * 360 / data.tea_time_ms, 1, 360);
             bool done = angle >= 360;
 
-            // No need to free the previous, since it's loaded as „shared“.
+            // No need to free the previous, since it's loaded as “shared”.
             data.icon = get_icon(data, done ? CAJIK_ICON : 10000 + angle);
 
             auto& fontTitle = done ? data.fontTitleB : data.fontTitleA;
