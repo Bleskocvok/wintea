@@ -41,5 +41,4 @@ else()
     add_executable(tea tea.cpp resources.o)
 endif()
 
-# target_link_libraries(chat PRIVATE user32)
 target_link_libraries(tea PRIVATE user32)
