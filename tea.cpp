@@ -130,27 +130,15 @@ std::wstring console_prompt(const std::string& text)
     if (AllocConsole() == 0)
         sys_err("Console window creation");
 
-    FILE* out = nullptr;
-    FILE* in = nullptr;
-    // freopen_s(&out, "CONOUT$", "w", stdout);
-    // freopen_s(&err, "CONIN$", "r", stdin);
-    out = fopen("CONOUT$", "w");
-    in = fopen("CONIN$", "r");
+    FILE* out = fopen("CONOUT$", "w");
+    FILE* in = fopen("CONIN$", "r");
 
     if (!out || !in)
         errno_err("Open standard streams");
 
     fprintf(out, "%s", text.c_str());
     fflush(out);
-    // std::string input;
-    // std::getline(std::cin, input);
-    // std::wstring res;
-    // for (char c : input)
-    //     res += c;
 
-    // char* line = nullptr;
-    // size_t n = 0;
-    // ssize_t len = getline(&line, &n, out);
     std::wstring res;
     wint_t wc;
     while ( ( wc = fgetwc(in) ) != WEOF && wc != L'\n' )
@@ -162,7 +150,7 @@ std::wstring console_prompt(const std::string& text)
     fclose(out);
     fclose(in);
 
-    // Doesn't appear to be needed.
+    // Doesn't appear to be needed. Console closes even without it.
     // PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 
     if (FreeConsole() == 0)
