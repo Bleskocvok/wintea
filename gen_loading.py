@@ -12,10 +12,17 @@ thing = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
 
+  <defs>
+    <filter id="shad1">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" />
+    </filter>
+  </defs>
+
   <g id="layer1">
     <path
+       style="filter:url(#shad1);"
        id="path1"
-       d="PATH_DATA" fill="#ffffff" stroke="#000000" stroke-width="4" />
+       d="PATH_DATA" fill="#ffffff" stroke="#000000" stroke-width="8" />
   </g>
 </svg>"""
 
