@@ -10,6 +10,10 @@
 #include <sstream>          // stringstream
 #include <map>
 
+#include <wchar.h>          // fgetwc
+#include <stdio.h>          // fopen, fclose
+#include <errno.h>          // errno
+
 namespace ch = std::chrono;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -36,6 +40,8 @@ struct layout_t
     style_t wait_style;
     style_t ready_style;
 };
+
+struct rect_t { int x, y, w, h; };
 
 layout_t LAYOUT =
 {
@@ -86,7 +92,7 @@ void cleanup(HWND hwnd, data_t& d)
     DeleteObject(d.fontDescB);
 }
 
-void sys_err(const std::string& desc)
+std::string sys_err_fmt(const std::string& desc)
 {
     auto err = GetLastError();
 
@@ -102,7 +108,67 @@ void sys_err(const std::string& desc)
 
     LocalFree(buf);
 
-    throw std::runtime_error(str.str());
+    return str.str();
+}
+
+void sys_err(const std::string& desc)
+{
+    throw std::runtime_error(sys_err_fmt(desc));
+}
+
+void errno_err(std::string desc)
+{
+    int e = errno;
+    desc += " (" + std::to_string(e) + "): " + strerror(e);
+    throw std::runtime_error(desc);
+}
+
+std::wstring console_prompt(const std::string& text)
+{
+    FreeConsole();
+
+    if (AllocConsole() == 0)
+        sys_err("Console window creation");
+
+    FILE* out = nullptr;
+    FILE* in = nullptr;
+    // freopen_s(&out, "CONOUT$", "w", stdout);
+    // freopen_s(&err, "CONIN$", "r", stdin);
+    out = fopen("CONOUT$", "w");
+    in = fopen("CONIN$", "r");
+
+    if (!out || !in)
+        errno_err("Open standard streams");
+
+    fprintf(out, "%s", text.c_str());
+    fflush(out);
+    // std::string input;
+    // std::getline(std::cin, input);
+    // std::wstring res;
+    // for (char c : input)
+    //     res += c;
+
+    // char* line = nullptr;
+    // size_t n = 0;
+    // ssize_t len = getline(&line, &n, out);
+    std::wstring res;
+    wint_t wc;
+    while ( ( wc = fgetwc(in) ) != WEOF && wc != L'\n' )
+    {
+        res += wc;
+    }
+
+    // This did appear needed, but doesn't anymore.
+    fclose(out);
+    fclose(in);
+
+    // Doesn't appear to be needed.
+    // PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
+
+    if (FreeConsole() == 0)
+        sys_err("Close console");
+
+    return res;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -114,6 +180,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
     catch (std::exception& ex)
     {
+        MessageBox(nullptr, ex.what(), "Error", MB_OK | MB_ICONERROR);
         std::cerr << "ERROR: " << ex.what() << std::endl;
         return 1;
     }
@@ -177,6 +244,9 @@ auto parse_time(const std::wstring& str)
                                   "e.g. 01:03:12 (one hour, three minutes, "
                                   "twelve seconds), or 5:00 (five minutes)");
     };
+
+    if (str.empty())
+        throw std::runtime_error("input empty");
 
     auto eat = [&]()
     {
@@ -243,6 +313,8 @@ std::string remaining_message(int secs)
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     arguments = get_arguments();
+    if (arguments.size() < 2)
+        arguments.push_back(console_prompt("Time: "));
 
     data.hInstance = hInstance;
     data.tea_time_ms = 1000 * parse_time(arguments.at(1));
