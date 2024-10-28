@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(WinTea)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(WIN32_EECUTABLEX 1)
 
@@ -42,3 +42,9 @@ else()
 endif()
 
 target_link_libraries(tea PRIVATE user32)
+
+if(MSVC)
+    set_property(TARGET tea PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+else()
+    target_link_options(tea  PRIVATE -static -static-libgcc -static-libstdc++)
+endif()

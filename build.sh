@@ -2,7 +2,7 @@
 
 [ -z "$DEST" ] && { 1>&2 echo "Environment variable DEST must be set."; exit 2; }
 
-if [ "$USE_MINGW" = 1 ]; then
+if [ "$USE_MINGW" != 0 ]; then
     cmake.exe -G "Unix Makefiles" -S . -B build \
         -D CMAKE_C_COMPILER=gcc.exe \
         -D CMAKE_CXX_COMPILER=g++.exe \
@@ -18,7 +18,7 @@ tgt()
 {
     rm -f "$DEST/$1.exe"
 
-    if [ "$USE_MINGW" = 1 ]; then
+    if [ "$USE_MINGW" != 0 ]; then
         built="./build/$1.exe"
     else
         built="./build/Debug/$1.exe"
