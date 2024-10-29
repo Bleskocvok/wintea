@@ -21,7 +21,7 @@ time which is entered in the same format.
 Originally intended to be used inside WSL. In that case the `install.sh` script
 should be followed as it places files in the appropriate places. The script
 compiles the source code, so it expects that you have setup development
-environment (either for MinGW or MSVC).
+environment (either MinGW or MSVC and Python3 and ImageMagick).
 
 In WSL (using MinGW):
 ```sh
