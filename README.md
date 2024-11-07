@@ -44,3 +44,11 @@ variable).
 tea 5:00
 tea
 ```
+
+If WSL doesn't find the `tea` command, that probably means the `PATH`
+environment variable doens't contain `~/bin`. To fix that, you can simply run
+this (assuming you are using `bash` (if you aren't, you probably already know
+what is going on and can set it up yourself)).
+```sh
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+```
