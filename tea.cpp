@@ -22,6 +22,7 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
                   int nCmdShow);
 
 #define CAJIK_ICON 1337
+#define LOADING_ICON_START 10000
 
 struct rgb_t { int r, g, b; };
 
@@ -81,8 +82,6 @@ struct data_t
 
 data_t data;
 
-std::vector<std::wstring> arguments;
-
 void cleanup(HWND hwnd, data_t& d)
 {
     KillTimer(hwnd, d.timer);
@@ -133,6 +132,7 @@ std::wstring console_prompt(const std::string& text)
     FILE* out = fopen("CONOUT$", "w");
     FILE* in = fopen("CONIN$", "r");
 
+    // TODO: Uniqueptr-ify cause of throwing.
     if (!out || !in)
         errno_err("Open standard streams");
 
@@ -300,7 +300,7 @@ std::string remaining_message(int secs)
 
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    arguments = get_arguments();
+    std::vector<std::wstring> arguments = get_arguments();
     if (arguments.size() < 2)
         arguments.push_back(console_prompt("Time: "));
 
@@ -341,7 +341,7 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     data.fontTitleB = load_font(22, LAYOUT.ready_style.font, true);
     data.fontDescB  = load_font(15, LAYOUT.ready_style.font);
 
-    data.icon = get_icon(data, 10001);
+    data.icon = get_icon(data, LOADING_ICON_START + 1);
 
     if (SetTimer(hwnd, data.timer, 100, (TIMERPROC) nullptr) == 0)
         return sys_err("LoadImage"), 1;
@@ -398,7 +398,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             bool done = angle >= 360;
 
             // No need to free the previous, since it's loaded as “shared”.
-            data.icon = get_icon(data, done ? CAJIK_ICON : 10000 + angle);
+            data.icon = get_icon(data, done ? CAJIK_ICON : LOADING_ICON_START + angle);
 
             auto& fontTitle = done ? data.fontTitleB : data.fontTitleA;
             auto& fontDesc  = done ? data.fontDescB : data.fontDescA;
