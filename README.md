@@ -18,7 +18,7 @@ time which is entered in the same format.
 
 ### WSL
 
-Originally intended to be used inside WSL. In that case the `install.sh` script
+Originally intended to be used inside WSL. In that case, the `install.sh` script
 should be followed as it places files in the appropriate places. The script
 compiles the source code, so it expects that you have setup development
 environment (either MinGW or MSVC and Python3 and ImageMagick).
