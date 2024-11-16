@@ -52,3 +52,24 @@ what is going on and can set it up yourself)).
 ```sh
 echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
 ```
+
+### Customization
+
+The appearance of the countdown window can be customized using environment
+variables. All sizes are in pixels. Colors are in html notation, e.g.: `#ff00ff`
+which would be pink.
+
+- `WINTEA_WIDTH` – Width of the window
+- `WINTEA_HEIGHT` – Height of the window
+- `WINTEA_DX` – Position of the window relative to the left side (or the right side if negative)
+- `WINTEA_DY` – Position of the window relative to top border (or the bottom one if negative)
+- `WINTEA_ICON_SIZE` – Size of icon
+- `WINTEA_WAIT_STYLE_FONT` – Name of font to show countdown message
+- `WINTEA_WAIT_STYLE_FG` – Color of text to show countdown message
+- `WINTEA_WAIT_STYLE_BG` – Color of background to during countdown
+- `WINTEA_READY_STYLE_FONT` – Name of font to show final message
+- `WINTEA_READY_STYLE_FG` – Color of text to show final message
+- `WINTEA_READY_STYLE_BG` – Color of background after countdown is done
+- `WINTEA_WAIT_TEXT` – Title to show during countdown
+- `WINTEA_READY_TEXT` – Title to show after countdown is done
+- `WINTEA_WAIT_DESC` – Description to show after countdown is done
