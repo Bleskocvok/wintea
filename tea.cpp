@@ -64,13 +64,13 @@ layout_t LAYOUT =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 64, 64 },
-        .font = "Iosevka Term",
+        .font = "",
     },
     .ready_style =
     {
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 164, 64 },
-        .font = "Iosevka Term Bold",
+        .font = "",
     },
 };
 
