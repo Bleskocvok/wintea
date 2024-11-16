@@ -1,18 +1,20 @@
 #include <windows.h>
-#include <string>
+#include <string>           // stoi
 #include <vector>
 #include <stdexcept>        // runtime_error
 #include <iostream>
 #include <sstream>
 #include <chrono>
 #include <algorithm>        // clamp
-#include <string_view>      // wstring_view
+#include <string_view>      // wstring_view, string_view
 #include <sstream>          // stringstream
 #include <map>
 
 #include <wchar.h>          // fgetwc
 #include <stdio.h>          // fopen, fclose
 #include <errno.h>          // errno
+
+#include <cstdlib>          // getenv
 
 namespace ch = std::chrono;
 
@@ -42,6 +44,13 @@ struct layout_t
     style_t ready_style;
 };
 
+struct labels_t
+{
+    std::string wait_text;
+    std::string ready_text;
+    std::string ready_desc;
+};
+
 struct rect_t { int x, y, w, h; };
 
 layout_t LAYOUT =
@@ -63,6 +72,13 @@ layout_t LAYOUT =
         .bg = rgb_t{ 64, 164, 64 },
         .font = "Iosevka Term Bold",
     },
+};
+
+labels_t LABELS =
+{
+    .wait_text = "Tea brewing",
+    .ready_text = "Tea ready",
+    .ready_desc = "Enjoy.",
 };
 
 struct data_t
@@ -157,6 +173,63 @@ std::wstring console_prompt(const std::string& text)
         sys_err("Close console");
 
     return res;
+}
+
+void from_env(std::string& out, const char* var)
+{
+    auto env = std::getenv(var);
+    if (env)
+        out = env;
+}
+
+void from_env(int& out, const char* var)
+{
+    auto env = std::getenv(var);
+    if (env)
+        out = std::stoi(env);
+}
+
+void from_env(rgb_t& out, const char* var)
+{
+    auto env = std::getenv(var);
+    if (!env) return;
+
+    std::string_view str = env;
+    if (str.size() < 7 || str.front() != '#') return;
+
+    str.remove_prefix(1);
+    auto str_r = std::string(str.substr(0, 2));
+    auto str_g = std::string(str.substr(2, 2));
+    auto str_b = std::string(str.substr(4, 2));
+
+    int r = stoi(str_r, nullptr, 16);
+    int g = stoi(str_g, nullptr, 16);
+    int b = stoi(str_b, nullptr, 16);
+
+    out.r = r;
+    out.g = g;
+    out.b = b;
+}
+
+void load_settings()
+{
+    from_env(LAYOUT.width, "WINTEA_WIDTH");
+    from_env(LAYOUT.height, "WINTEA_HEIGHT");
+    from_env(LAYOUT.dx, "WINTEA_DX");
+    from_env(LAYOUT.dy, "WINTEA_DY");
+    from_env(LAYOUT.icon_size, "WINTEA_ICON_SIZE");
+
+    from_env(LAYOUT.wait_style.font, "WINTEA_WAIT_STYLE_FONT");
+    from_env(LAYOUT.wait_style.fg, "WINTEA_WAIT_STYLE_FG");
+    from_env(LAYOUT.wait_style.bg, "WINTEA_WAIT_STYLE_BG");
+
+    from_env(LAYOUT.ready_style.font, "WINTEA_READY_STYLE_FONT");
+    from_env(LAYOUT.ready_style.fg, "WINTEA_READY_STYLE_FG");
+    from_env(LAYOUT.ready_style.bg, "WINTEA_READY_STYLE_BG");
+
+    from_env(LABELS.wait_text, "WINTEA_WAIT_TEXT");
+    from_env(LABELS.ready_text, "WINTEA_READY_TEXT");
+    from_env(LABELS.ready_desc, "WINTEA_WAIT_DESC");
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -300,6 +373,8 @@ std::string remaining_message(int secs)
 
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
+    load_settings();
+
     std::vector<std::wstring> arguments = get_arguments();
     if (arguments.size() < 2)
         arguments.push_back(console_prompt("Time: "));
@@ -411,13 +486,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             std::string desc;
             if (done)
             {
-                title = "Tea ready";
-                desc = "Enjoy.";
+                title = LABELS.ready_text;
+                desc = LABELS.ready_desc;
             }
             else
             {
                 int remains = data.tea_time_ms / 1000 - elapsed / 1000;
-                title = "Tea brewing";
+                title = LABELS.wait_text;
                 desc = remaining_message(remains);
             }
 
