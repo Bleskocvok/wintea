@@ -2,6 +2,8 @@
 
 Simple countdown program displaying time remaining until your tea is ready.
 
+![Wintea gif](wintea.gif)
+
 [Download latest release](https://github.com/Bleskocvok/wintea/releases/latest)
 
 You can download the executable file (`tea.exe`), place it somewhere and run it to begin
