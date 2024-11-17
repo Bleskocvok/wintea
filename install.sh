@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 export DEST="/mnt/c/Tea/"
 
 mkdir -p "$DEST"
@@ -15,4 +17,11 @@ echo '#!/bin/sh
 
 chmod +x "$HOME/bin/tea"
 
-echo 'Installation successful. Please make sure that ~/bin is in PATH.'
+echo 'Installation complete.'
+printf 'Please make sure that ~/bin is in PATH. Simple check: '
+
+if echo "$PATH" | tr ':' '\n' | grep --color=auto "$HOME/bin" > /dev/null; then
+    printf '\033[32mSeems okay\033[0m (~/bin is in PATH)\n'
+else
+    printf '\033[31mDoes not seem okay (~/bin not in PATH)\033[0m\n'
+fi
