@@ -68,7 +68,7 @@ which would be pink.
 - `WINTEA_ICON_SIZE` – Size of icon
 - `WINTEA_WAIT_STYLE_FONT` – Name of font to show countdown message
 - `WINTEA_WAIT_STYLE_FG` – Color of text to show countdown message
-- `WINTEA_WAIT_STYLE_BG` – Color of background to during countdown
+- `WINTEA_WAIT_STYLE_BG` – Color of background during countdown
 - `WINTEA_READY_STYLE_FONT` – Name of font to show final message
 - `WINTEA_READY_STYLE_FG` – Color of text to show final message
 - `WINTEA_READY_STYLE_BG` – Color of background after countdown is done
