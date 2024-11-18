@@ -28,6 +28,8 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 
 struct rgb_t { int r, g, b; };
 
+struct rect_t { int x_left, y_top, x_right, y_bottom; };
+
 struct style_t
 {
     rgb_t fg, bg;
@@ -42,6 +44,9 @@ struct layout_t
 
     style_t wait_style;
     style_t ready_style;
+
+    rect_t title_rect;
+    rect_t desc_rect;
 };
 
 struct labels_t
@@ -50,8 +55,6 @@ struct labels_t
     std::string ready_text;
     std::string ready_desc;
 };
-
-struct rect_t { int x, y, w, h; };
 
 layout_t LAYOUT =
 {
@@ -71,6 +74,20 @@ layout_t LAYOUT =
         .fg = rgb_t{ 255, 255, 255 },
         .bg = rgb_t{ 64, 164, 64 },
         .font = "",
+    },
+    .title_rect =
+    {
+        .x_left = 70,
+        .y_top = 5,
+        .x_right = 295,
+        .y_bottom = 30,
+    },
+    .desc_rect =
+    {
+        .x_left = 70,
+        .y_top = 35,
+        .x_right = 295,
+        .y_bottom = 95,
     },
 };
 
@@ -230,6 +247,16 @@ void load_settings()
     from_env(LABELS.wait_text, "WINTEA_WAIT_TEXT");
     from_env(LABELS.ready_text, "WINTEA_READY_TEXT");
     from_env(LABELS.ready_desc, "WINTEA_WAIT_DESC");
+
+    from_env(LAYOUT.title_rect.x_left,   "WINTEA_TITLE_RECT_X_LEFT");
+    from_env(LAYOUT.title_rect.y_top,    "WINTEA_TITLE_RECT_Y_TOP");
+    from_env(LAYOUT.title_rect.x_right,  "WINTEA_TITLE_RECT_X_RIGHT");
+    from_env(LAYOUT.title_rect.y_bottom, "WINTEA_TITLE_RECT_T_BOTTOM");
+
+    from_env(LAYOUT.desc_rect.x_left,   "WINTEA_DESC_RECT_X_LEFT");
+    from_env(LAYOUT.desc_rect.y_top,    "WINTEA_DESC_RECT_Y_TOP");
+    from_env(LAYOUT.desc_rect.x_right,  "WINTEA_DESC_RECT_X_RIGHT");
+    from_env(LAYOUT.desc_rect.y_bottom, "WINTEA_DESC_RECT_Y_BOTTOM");
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -508,13 +535,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             SelectObject(hdc, fontTitle);
             SetTextColor(hdc, RGB(fg.r, fg.g, fg.b));
             RECT rect_title;
-            SetRect(&rect_title, 70, 5, 295, 30);
+            //x_left, y_top, x_right, y_bottom
+            SetRect(&rect_title, LAYOUT.title_rect.x_left,
+                                 LAYOUT.title_rect.y_top,
+                                 LAYOUT.title_rect.x_right,
+                                 LAYOUT.title_rect.y_bottom);
             DrawText(hdc, title.c_str(), -1, &rect_title, DT_LEFT | DT_WORD_ELLIPSIS);
 
             SelectObject(hdc, fontDesc);
             SetTextColor(hdc, RGB(fg.r, fg.g, fg.b));
             RECT rect_desc;
-            SetRect(&rect_desc, 70, 35, 295, 95);
+            SetRect(&rect_desc, LAYOUT.desc_rect.x_left,
+                                LAYOUT.desc_rect.y_top,
+                                LAYOUT.desc_rect.x_right,
+                                LAYOUT.desc_rect.y_bottom);
             DrawText(hdc, desc.c_str(), -1, &rect_desc, DT_LEFT | DT_WORDBREAK);
 
             DrawIconEx(hdc, 0, 0, data.icon, LAYOUT.icon_size, LAYOUT.icon_size,
