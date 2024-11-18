@@ -75,3 +75,13 @@ which would be pink.
 - `WINTEA_WAIT_TEXT` – Title to show during countdown
 - `WINTEA_READY_TEXT` – Title to show after countdown is done
 - `WINTEA_WAIT_DESC` – Description to show after countdown is done
+- Title text rectangle coordinates
+    - `WINTEA_TITLE_RECT_X_LEFT`
+    - `WINTEA_TITLE_RECT_Y_TOP`
+    - `WINTEA_TITLE_RECT_X_RIGHT`
+    - `WINTEA_TITLE_RECT_T_BOTTOM`
+- Description text rectangle coordinates
+    - `WINTEA_DESC_RECT_X_LEFT`
+    - `WINTEA_DESC_RECT_Y_TOP`
+    - `WINTEA_DESC_RECT_X_RIGHT`
+    - `WINTEA_DESC_RECT_Y_BOTTOM`
