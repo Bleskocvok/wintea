@@ -1,0 +1,12 @@
+name: Build
+run-name: Running build for push by ${{ github.actor }}
+on: [push]
+
+jobs:
+  run-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@main
+      - run: python3 dummy.py cajik.ico
+      - run: cmake -S . -B build
+      - run: cmake --build build
