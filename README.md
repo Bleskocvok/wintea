@@ -5,10 +5,9 @@ Simple countdown program displaying time remaining until your tea is ready.
 ![Wintea gif](wintea.gif)
 
 [![Build badge](https://github.com/Bleskocvok/wintea/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/Bleskocvok/wintea/actions/workflows/build.yml)
+[![Download badge](https://img.shields.io/badge/Download-latest-blue)](https://github.com/Bleskocvok/wintea/releases/latest)
 
-[Download latest release](https://github.com/Bleskocvok/wintea/releases/latest)
-
-You can download the executable file (`tea.exe`), place it somewhere and run it to begin
+You can [download](https://github.com/Bleskocvok/wintea/releases/latest) the executable file (`tea.exe`), place it somewhere and run it to begin
 countdown.
 
 It can be run from powershell as follows to begin countdown for 5 minutes:
