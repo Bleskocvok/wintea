@@ -269,7 +269,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     catch (std::exception& ex)
     {
         MessageBox(nullptr, ex.what(), "Error", MB_OK | MB_ICONERROR);
-        std::cerr << "ERROR: " << ex.what() << std::endl;
+        // TODO: Perhaps do this only in some cases, depending on context where
+        // this program was run from.
+        //     std::cerr << "ERROR: " << ex.what() << std::endl;
         return 1;
     }
 }
