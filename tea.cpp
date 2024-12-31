@@ -330,7 +330,8 @@ auto parse_time(const std::wstring& str)
     {
         return std::runtime_error("invalid time format, must be hh:mm:ss, "
                                   "e.g. 01:03:12 (one hour, three minutes, "
-                                  "twelve seconds), or 5:00 (five minutes)");
+                                  "twelve seconds), or 5:00 (five minutes),"
+                                  "or 12 (twelve seconds)");
     };
 
     if (str.empty())
