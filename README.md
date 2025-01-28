@@ -59,8 +59,15 @@ echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
 ### Customization
 
 The appearance of the countdown window can be customized using environment
-variables. All sizes are in pixels. Colors are in html notation, e.g.: `#ff00ff`
+variables or command line arguments. All sizes are in pixels. Colors are in
+html notation, e.g.: `#ff00ff`
 which would be pink.
+
+For example, this would run the timer for 5 minutes with window width of 1000
+pixels.
+```
+tea -DWINTEA_WIDTH=1000 5:00
+```
 
 - `WINTEA_WIDTH` – Width of the window
 - `WINTEA_HEIGHT` – Height of the window
