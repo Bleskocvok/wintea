@@ -113,6 +113,8 @@ struct data_t
     int tea_time_ms = 0;
 };
 
+std::map<std::string, std::string> ENV_OVERRIDE = {};
+
 data_t data;
 
 void cleanup(HWND hwnd, data_t& d)
@@ -192,23 +194,35 @@ std::wstring console_prompt(const std::string& text)
     return res;
 }
 
+const char* get_env(const char* var)
+{
+    if (auto it = ENV_OVERRIDE.find(var); it != ENV_OVERRIDE.end())
+        return it->second.c_str();
+
+    auto env = std::getenv(var);
+    if (env)
+        return env;
+
+    return nullptr;
+}
+
 void from_env(std::string& out, const char* var)
 {
-    auto env = std::getenv(var);
+    auto env = get_env(var);
     if (env)
         out = env;
 }
 
 void from_env(int& out, const char* var)
 {
-    auto env = std::getenv(var);
+    auto env = get_env(var);
     if (env)
         out = std::stoi(env);
 }
 
 void from_env(rgb_t& out, const char* var)
 {
-    auto env = std::getenv(var);
+    auto env = get_env(var);
     if (!env) return;
 
     std::string_view str = env;
@@ -403,14 +417,38 @@ std::string remaining_message(int secs)
 
 int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
+    std::vector<std::wstring> arguments = get_arguments();
+
+    std::vector<std::string> str_args;
+    for (const auto& a : arguments)
+    {
+        str_args.emplace_back();
+        for (wchar_t wc : a)
+        {
+            unsigned char c = unsigned(wc);
+            str_args.back().push_back(c);
+        }
+    }
+
+    int skip = 0;
+    for (auto& a : str_args)
+        if (a.size() >= 2 && a[0] == '-'
+                          && a[1] == 'D')
+        {
+            if (auto sep = a.find('='); sep != a.npos)
+            {
+                ENV_OVERRIDE[ a.substr(2, sep - 2) ] = a.substr(sep + 1);
+                skip++;
+            }
+        }
+
     load_settings();
 
-    std::vector<std::wstring> arguments = get_arguments();
     if (arguments.size() < 2)
         arguments.push_back(console_prompt("Time: "));
 
     data.hInstance = hInstance;
-    data.tea_time_ms = 1000 * parse_time(arguments.at(1));
+    data.tea_time_ms = 1000 * parse_time(arguments.at(skip + 1));
     data.start = std::chrono::steady_clock::now();
 
     const char app_class[] = "Tea Notification Class";
@@ -525,7 +563,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                 title = LABELS.wait_text;
                 desc = remaining_message(remains);
             }
-
 
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
