@@ -444,11 +444,12 @@ int WINAPI myMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     load_settings();
 
+    arguments.erase(arguments.begin(), arguments.begin() + skip);
     if (arguments.size() < 2)
         arguments.push_back(console_prompt("Time: "));
 
     data.hInstance = hInstance;
-    data.tea_time_ms = 1000 * parse_time(arguments.at(skip + 1));
+    data.tea_time_ms = 1000 * parse_time(arguments.at(1));
     data.start = std::chrono::steady_clock::now();
 
     const char app_class[] = "Tea Notification Class";
